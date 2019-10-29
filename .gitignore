@@ -1,3 +1,2 @@
-res/*.*
-output.png
-screen.png
+res/
+*.png
