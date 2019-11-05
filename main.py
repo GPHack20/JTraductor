@@ -24,6 +24,8 @@ from shutil import copyfile,copytree,copy2
 
 from translate import Translator
 
+import subprocess
+
 from PySide2.QtWebEngineWidgets import QWebEngineView
 
 from PySide2.QtWidgets import *
@@ -307,27 +309,46 @@ class Form(QDialog):
         global text_Input  
         global html_part  
         global text_web
-
+        com=[]
         text_input="os"
         if os.name =='nt':
             text_input=text_Input.toPlainText().replace("\r\n"," ")
+            com=["trans",(str(":"+self.ini_lang.currentText()),"")[str(":"+self.ini_lang.currentText())=="autodetec"],str(":"+self.final_lang.currentText()),str(text_Input.toPlainText()),"-b"]
         elif os.name=='posix':
             text_input=text_Input.toPlainText().replace("\n"," ")
+            com=["trans",(str(":"+self.ini_lang.currentText()),"")[str(":"+self.ini_lang.currentText())=="autodetec"],str(":"+self.final_lang.currentText()),str(text_Input.toPlainText()),"-b"]
         text_input=text_input.strip()
         if not text_input[-1:] == '.':
             text_input+="."        
         text_Input.setText(text_input)
 
+        traduccion=""
+
+        """
+        #Traduccion con libreria pip3
         traducir=Translator(from_lang=str(self.ini_lang.currentText()),to_lang=str(self.final_lang.currentText()))
         #print(text_Input.toPlainText())
-        traduccion=""
+                
         text_traducir=str(text_Input.toPlainText()).split('.')
         for k in text_traducir:
-            print(k+":\t"+traducir.translate(k)+"\n")
+            #print(k+":\t"+traducir.translate(k)+"\n")
             traduccion+=traducir.translate(k)+". "
         #traduccion=traducir.translate(cad)
         traduccion=traduccion.replace(". .",".")
-        print(traduccion)
+        #print(traduccion)"""
+        iLang=(str(":"+self.ini_lang.currentText()),"")[":autodetect"==str(":"+self.ini_lang.currentText())]
+        fLang=str(":"+self.final_lang.currentText())
+        textT=str(text_Input.toPlainText())
+        #Traduccion por shell
+        if os.name =='nt':
+            comando='"'+textT+'"'
+            os.system("bash -c '/home/gphack20/trans -b {} {} {} '>out.txt".format(iLang,fLang,comando))
+            fL=open("out.txt","r",encoding='utf-8')
+            traduccion=fL.read()
+        elif os.name=='posix':       
+            res = subprocess.check_output(["trans", "-b", iLang,fLang,textT])
+            traduccion=str(res.decode('utf-8'))
+
         self.text_Output.setText(traduccion)
         html_part=[
         "<tr>",
